@@ -2,13 +2,15 @@
 name = "authz-core"
 version = "0.1.0"
 edition = "2024"
+rust-version = "1.85"
 description = "Zanzibar-style authorization engine — model parser, resolver, policy traits, and CEL condition evaluation"
 license = "Apache-2.0"
-repository = "https://github.com/YOUR_ORG/authz-core"
+repository = "https://github.com/zvectorlabs/authz-core"
 documentation = "https://docs.rs/authz-core"
 readme = "README.md"
 keywords = ["authorization", "zanzibar", "rbac", "abac", "fga"]
 categories = ["authentication"]
+exclude = [".githooks", "Makefile"]
 
 [dependencies]
 async-trait = "0.1.80"
@@ -18,7 +20,6 @@ tokio = { version = "1", features = ["sync", "rt-multi-thread"] }
 futures = "0.3"
 thiserror = "2"
 tracing = "0.1"
-opentelemetry = "0.21"
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1"
 # CEL (Common Expression Language) — merged from authz-cel
