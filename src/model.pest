@@ -1,0 +1,73 @@
+// Pest grammar for the authorization model DSL, inspired by OpenFGA syntax.
+
+WHITESPACE = _{ " " | "\t" | "\r" | "\n" }
+COMMENT = _{ "//" ~ (!"\n" ~ ANY)* | "/*" ~ (!"*/" ~ ANY)* ~ "*/" }
+
+// ----------------------------------------------------------------------------
+// Basic tokens
+// ----------------------------------------------------------------------------
+
+identifier = @{ (ASCII_ALPHA | "_") ~ ((ASCII_ALPHANUMERIC | "_") | ("-" ~ (ASCII_ALPHANUMERIC | "_")))* }
+
+// ----------------------------------------------------------------------------
+// Top-level structure
+// ----------------------------------------------------------------------------
+
+file = { SOI ~ WHITESPACE* ~ (COMMENT ~ WHITESPACE*)* ~ (type_def | condition_def)* ~ WHITESPACE* ~ (COMMENT ~ WHITESPACE*)* ~ EOI }
+
+// ----------------------------------------------------------------------------
+// Type Definition: `type user {}` or `type folder { relations ... }` or `type folder { relations ... permissions ... }`
+// ----------------------------------------------------------------------------
+
+type_def = { "type" ~ identifier ~ "{" ~ relations_block? ~ permissions_block? ~ "}" }
+
+relations_block = { "relations" ~ relation_def+ }
+
+permissions_block = { "permissions" ~ permission_def+ }
+
+relation_def = { "define" ~ identifier ~ ":" ~ relation_expr }
+
+permission_def = { "define" ~ identifier ~ "=" ~ relation_expr }
+
+// ----------------------------------------------------------------------------
+// Relation Expression Grammar (Union, Intersection, Exclusion)
+// Arrow and operator syntax: +, &, -, ->
+// ----------------------------------------------------------------------------
+
+// Note: Arrow syntax has union precedence: union binds tighter than intersection/exclusion
+relation_expr = { exclusion_expr }
+
+exclusion_expr = { intersection_expr ~ ("-" ~ intersection_expr)? }
+
+intersection_expr = { union_expr ~ ("&" ~ union_expr)* }
+
+union_expr = { primary_expr ~ ("+" ~ primary_expr)* }
+
+primary_expr = { direct_assignment | tuple_to_userset | computed_userset }
+
+// `viewer` (a relation on the same object)
+computed_userset = { identifier }
+
+// `parent->viewer` (a relation/permission on another related object)
+// NOTE: Normalizes into RelationExpr::TupleToUserset { tupleset, computed_userset }
+tuple_to_userset = { identifier ~ "->" ~ identifier }
+
+// `[user | group#member]` (a direct assignment of subjects)
+direct_assignment = { "[" ~ (assignable_target ~ ("|" ~ assignable_target)*)? ~ "]" }
+
+assignable_target = { type_spec ~ "#" ~ identifier | type_spec ~ ":*" | type_spec ~ "with" ~ identifier | type_spec }
+
+type_spec = { identifier }
+
+// ----------------------------------------------------------------------------
+// Condition Definition: `condition name(param: type, ...) { expression }`
+// ----------------------------------------------------------------------------
+
+condition_def = { "condition" ~ identifier ~ "(" ~ (condition_param ~ ("," ~ condition_param)*)? ~ ")" ~ "{" ~ condition_expr ~ "}" }
+
+condition_param = { identifier ~ ":" ~ param_type }
+
+param_type = { "string" | "int" | "bool" | "list<string>" | "list<int>" | "list<bool>" | "map<string, string>" }
+
+condition_expr = { (!"}" ~ ANY)+ } // For now, treat the expression as a raw string.
+

@@ -1,0 +1,19 @@
+#!/bin/sh
+# Pre-commit: run make fmt and reject if formatting changed files (so you re-add and commit).
+
+set -e
+cd "$(git rev-parse --show-toplevel)"
+
+# Stash unstaged changes so we only format what's staged (optional: format all)
+# Run fmt on the repo; if it changes anything, fail so user can re-add and commit.
+make fmt
+
+make ci || exit 1
+
+# If fmt changed any tracked files, they're now modified; reject so user re-adds.
+if ! git diff --quiet; then
+	echo "make fmt changed some files. Please stage the changes and commit again:"
+	echo "  git add -u && git commit"
+	exit 1
+fi
+exit 0

@@ -1,0 +1,32 @@
+#!/bin/sh
+# Commit-msg: reject "authorized by cursor", Co-authored-by, and enforce conventional commit (feat:, fix:, etc.)
+
+msg_file="$1"
+if [ ! -f "$msg_file" ]; then
+	echo "commit-msg: no message file" >&2
+	exit 1
+fi
+
+
+# Reject Co-authored-by trailers
+if grep -qiE 'co-authored-by:' "$msg_file"; then
+	echo "commit-msg: commit message must not contain 'Co-authored-by' with agent tags." >&2
+	exit 1
+fi
+
+# First line: conventional commit (type: message or type(scope): message)
+# Types: feat, fix, docs, style, refactor, perf, test, ci, chore, build
+# Allow: Merge..., Revert "...", and blank first line only for squash/merge
+first_line=$(sed -n '1p' "$msg_file")
+if [ -z "$first_line" ]; then
+	echo "commit-msg: first line of commit message must not be empty." >&2
+	exit 1
+fi
+if echo "$first_line" | grep -qE '^(Merge |Revert ")'; then
+	: # merge or revert, allow
+elif ! echo "$first_line" | grep -qE '^(feat|fix|docs|style|refactor|perf|test|ci|chore|build)(\([^)]+\))?!?: .+'; then
+	echo "commit-msg: first line must follow conventional commits, e.g. feat: add xyz, fix(scope): bar." >&2
+	echo "  Allowed types: feat, fix, docs, style, refactor, perf, test, ci, chore, build" >&2
+	exit 1
+fi
+exit 0

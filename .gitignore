@@ -1,0 +1,36 @@
+# Rust build artifacts
+/target/
+Cargo.lock
+
+# Editor / IDE
+.vscode/
+.idea/
+*.iml
+*.swp
+*.swo
+*~
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Environment / secrets
+.env
+.env.*
+*.pem
+*.key
+
+# Test and benchmark output
+/flamegraph.svg
+/perf.data
+/perf.data.old
+
+# Coverage
+/lcov.info
+/coverage/
+tarpaulin-report.html
+tarpaulin-report.json
+
+# Generated docs (local build)
+/doc/
