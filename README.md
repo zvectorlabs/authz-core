@@ -16,7 +16,7 @@ A [Zanzibar](https://research.google/pubs/zanzibar-googles-consistent-global-aut
 - A **cache abstraction** (`AuthzCache`) for pluggable caching backends
 - A **dispatcher** abstraction for fan-out to multiple resolvers
 
-No database or transport dependencies are included — those live in downstream crates (e.g. `pgauthz`).
+No database or transport dependencies are included — those live in downstream implementations (e.g. [`pgauthz`](git@github.com:zvectorlabs/pgauthz.git)).
 
 ---
 
